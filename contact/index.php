@@ -30,7 +30,7 @@
 			$msg = Swift_Message::newInstance()
 				->setSubject($subject)
 				->setFrom("info@wintersfear.com")
-				->setTo(["kevin@wintersfear.com", "robert@wintersfear.com"])
+				->setTo($config['mail.contact_recipients'])
 				->setReplyTo(array($email => $name))
 				->setBody($message);
 
