@@ -1,4 +1,50 @@
 <?php
+	$input = [];
+
+	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		$params = ["name", "email", "message"];
+		$errors = [];
+
+		foreach ($params as $param) {
+			if (!isset($_REQUEST[$param]) || $_REQUEST[$param] == '') {
+				$errors[$param] = ucfirst($param)." is required.";
+			}
+		}
+
+		if (!isset($errors['email'])) {
+			if (filter_var($_REQUEST['email'], FILTER_VALIDATE_EMAIL) == false) {
+				$errors['email'] = 'Please enter a valid email address.';
+			}
+		}
+
+		if (count($errors) == 0) {
+			$name    = str_ireplace(array("\r", "\n", '%0A', '%0D'), '', $_REQUEST['name']);
+			$email   = str_ireplace(array("\r", "\n", '%0A', '%0D'), '', $_REQUEST['email']);
+			$message = filter_var($_REQUEST['message'], FILTER_SANITIZE_STRING);
+
+			$to = "kevin@wintersfear.com, robert@wintersfear.com";
+			$subject = "Wintersfear.com: Message from ".$name;
+			$headers = "From: info@wintersfear.com"."\r\n".
+								 "Reply-To: ".$email;
+
+			$r = mail($to, $subject, $message, $headers);
+
+			if ($r) {
+				$messages = ["Message was sent successfully"];
+			}
+			else {
+				$messages = ["An error occurred while sending your message."];
+			}
+		}
+		else {
+			$input = [
+				'name' => $_REQUEST['name'],
+				'email' => $_REQUEST['email'],
+				'message' => $_REQUEST['message'],
+			];
+		}
+	}
+
 	$title = 'Contact | Wintersfear';
 	$page = 'contact';
 	include('../inc/header.php');
@@ -7,22 +53,36 @@
 <h1>Contact</h1>
 
 <p class="intro">For booking or general contact, please complete the form.</p>
-			
 
 <div class="rule"></div>
 
-<form>
-	<div class="form-row">
+<?php if (isset($messages) && count($messages)): ?>
+<ul>
+	<?php echo '<li>'.implode('</li><li>', $messages).'</li>'; ?>
+</ul>
+<?php endif; ?>
+
+<form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+	<div class="form-row<?php if (isset($errors['name'])) echo ' required'; ?>">
 		<label>Name:</label>
-		<input type="text" />
+		<input type="text" name="name" value="<?php if (isset($input['name'])) echo $input['name']; ?>" />
+		<?php if (isset($errors['name'])): ?>
+		<span class="errors">*<?php echo $errors['name']; ?></span>
+		<?php endif; ?>
 	</div>
-	<div class="form-row">
+	<div class="form-row<?php if (isset($errors['email'])) echo ' required'; ?>">
 		<label>Email:</label>
-		<input type="text" />
+		<input type="text" name="email" value="<?php if (isset($input['email'])) echo $input['email']; ?>" />
+		<?php if (isset($errors['email'])): ?>
+		<span class="errors">*<?php echo $errors['email']; ?></span>
+		<?php endif; ?>
 	</div>
-	<div class="form-row">
+	<div class="form-row<?php if (isset($errors['message'])) echo ' required'; ?>">
 		<label>Message:</label>
-		<textarea></textarea>
+		<textarea name="message"><?php if (isset($input['message'])) echo $input['message']; ?></textarea>
+		<?php if (isset($errors['message'])): ?>
+		<span class="errors">*<?php echo $errors['message']; ?></span>
+		<?php endif; ?>
 	</div>
 	<div class="form-row">
 		<input type="submit" value="Submit" />

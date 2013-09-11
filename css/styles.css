@@ -254,7 +254,7 @@ tr:nth-child(2n) {
 	overflow: auto;
 	margin-bottom: 10px;
 }
-label, input, textarea {
+label, input, textarea, span {
 	float: left;
 }
 label {
@@ -288,6 +288,13 @@ input[type="submit"]:hover {
 	background: #555;
 	color: #ebebeb;
 	transition: background .2s, color .2s;
+}
+.form-row.required input[type="text"], .form-row.required textarea {
+	border: 1px solid #ff0000;
+}
+.form-row.required .errors {
+	padding: 10px 15px;
+	color: #ff0000;
 }
 .video {
 	float: left;
