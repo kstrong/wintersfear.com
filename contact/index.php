@@ -1,4 +1,7 @@
 <?php
+	require_once '../libraries/swiftmailer/swift_required.php';
+	$config = require_once '../configuration.php';
+
 	$input = [];
 
 	if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -20,16 +23,26 @@
 		if (count($errors) == 0) {
 			$name    = str_ireplace(array("\r", "\n", '%0A', '%0D'), '', $_REQUEST['name']);
 			$email   = str_ireplace(array("\r", "\n", '%0A', '%0D'), '', $_REQUEST['email']);
-			$message = filter_var($_REQUEST['message'], FILTER_SANITIZE_STRING);
+			$message = filter_var($_REQUEST['message'], FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
 
-			$to = "kevin@wintersfear.com, robert@wintersfear.com";
 			$subject = "Wintersfear.com: Message from ".$name;
-			$headers = "From: info@wintersfear.com"."\r\n".
-								 "Reply-To: ".$email;
 
-			$r = mail($to, $subject, $message, $headers);
+			$msg = Swift_Message::newInstance()
+				->setSubject($subject)
+				->setFrom("info@wintersfear.com")
+				->setTo(["kevin@wintersfear.com", "robert@wintersfear.com"])
+				->setReplyTo(array($email => $name))
+				->setBody($message);
 
-			if ($r) {
+			$transport = Swift_SmtpTransport::newInstance($config['mail.host'], $config['mail.port'])
+				->setUsername($config['mail.username'])
+				->setPassword($config['mail.password']);
+
+			$mailer = Swift_Mailer::newInstance($transport);
+
+			$result = $mailer->send($msg);
+
+			if ($result) {
 				$messages = ["Message was sent successfully"];
 			}
 			else {
